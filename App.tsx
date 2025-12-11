@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
 import ApiKeyModal from './components/ApiKeyModal';
 import LoginScreen from './components/LoginScreen';
-import { Menu, Info, Sparkles, Sun, Moon, Facebook, Mail, Phone, MapPin, MessageSquarePlus, History, Trash2, MessageSquare, Bot, Settings, Key, LogOut, User } from 'lucide-react';
+import { Menu, Sun, Moon, Facebook, Mail, Phone, MessageSquarePlus, History, Trash2, MessageSquare, Bot, Key, LogOut } from 'lucide-react';
 import { ChatSession, Message } from './types';
 import { getStoredApiKey } from './services/gemini';
 
@@ -18,6 +18,7 @@ const App: React.FC = () => {
   });
 
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [apiKeyVersion, setApiKeyVersion] = useState(0);
 
   // Initialize Theme and Check Auth
   useEffect(() => {
@@ -158,7 +159,11 @@ const App: React.FC = () => {
       <ApiKeyModal 
         isOpen={showApiKeyModal} 
         onClose={() => setShowApiKeyModal(false)}
-        onSave={() => setShowApiKeyModal(false)}
+        onSave={() => {
+          setShowApiKeyModal(false);
+          // Increment version to force ChatInterface re-render and re-init with new key
+          setApiKeyVersion(v => v + 1);
+        }}
       />
 
       {/* Mobile Sidebar Overlay */}
@@ -354,7 +359,7 @@ const App: React.FC = () => {
         </div>
 
         <ChatInterface 
-          key={activeSessionId}
+          key={`${activeSessionId}-${apiKeyVersion}`}
           initialMessages={activeSession?.messages || []}
           onUpdateMessages={updateActiveSession}
           onNewChat={createNewChat}
