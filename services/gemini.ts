@@ -4,11 +4,21 @@ import { Attachment } from "../types";
 // Lazy initialize the client to prevent startup crashes
 let aiClient: GoogleGenAI | null = null;
 
+// Helper to safely access env vars without crashing if process is undefined
+const getEnvApiKey = (): string => {
+  try {
+    // Vite replaces 'process.env.API_KEY' with the actual string during build
+    return process.env.API_KEY || '';
+  } catch (e) {
+    return '';
+  }
+};
+
 export const getStoredApiKey = (): string => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('gemini_api_key') || process.env.API_KEY || '';
+    return localStorage.getItem('gemini_api_key') || getEnvApiKey();
   }
-  return process.env.API_KEY || '';
+  return getEnvApiKey();
 };
 
 export const setStoredApiKey = (key: string) => {
