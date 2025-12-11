@@ -87,20 +87,37 @@
   <script type="importmap">
 {
   "imports": {
-    "react-dom/": "https://esm.sh/react-dom@^19.2.1/",
-    "react-markdown": "https://esm.sh/react-markdown@^10.1.0",
-    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
-    "react/": "https://esm.sh/react@^19.2.1/",
     "react": "https://esm.sh/react@^19.2.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.1/",
+    "react/": "https://esm.sh/react@^19.2.1/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
     "lucide-react": "https://esm.sh/lucide-react@^0.559.0",
+    "react-dom": "https://esm.sh/react-dom@^19.2.1",
+    "react-markdown": "https://esm.sh/react-markdown@^10.1.0",
     "remark-gfm": "https://esm.sh/remark-gfm@^4.0.1",
-    "react-dom": "https://esm.sh/react-dom@^19.2.1"
+    "vite": "https://esm.sh/vite@^7.2.7",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
   }
 }
 </script>
 </head>
   <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 antialiased overflow-hidden transition-colors duration-300">
     <div id="root"></div>
-    <script type="module" src="./index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
+    <!-- Simple Error Handler to display issues on screen instead of white screen -->
+    <script>
+      window.addEventListener('error', function(e) {
+        // Wait a tick to ensure React hasn't mounted
+        setTimeout(() => {
+          const root = document.getElementById('root');
+          if (root && (!root.innerHTML || root.innerHTML === '')) {
+             const errorDiv = document.createElement('div');
+             errorDiv.style.cssText = 'position:fixed; inset:0; z-index:9999; background:#0f172a; color:#f87171; padding:2rem; font-family:monospace; white-space:pre-wrap; overflow:auto;';
+             errorDiv.innerHTML = '<h2 style="color:white; margin-bottom:1rem">Startup Error</h2>' + e.message;
+             document.body.appendChild(errorDiv);
+          }
+        }, 1000);
+      });
+    </script>
   </body>
 </html>
