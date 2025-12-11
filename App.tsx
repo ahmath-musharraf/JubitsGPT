@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
-import { Menu, Info, Sparkles, Sun, Moon, Facebook, Mail, Phone, MapPin, MessageSquarePlus, History, Trash2, MessageSquare, Bot } from 'lucide-react';
+import ApiKeyModal from './components/ApiKeyModal';
+import { Menu, Info, Sparkles, Sun, Moon, Facebook, Mail, Phone, MapPin, MessageSquarePlus, History, Trash2, MessageSquare, Bot, Settings, Key } from 'lucide-react';
 import { ChatSession, Message } from './types';
+import { getStoredApiKey } from './services/gemini';
 
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -11,6 +13,16 @@ const App: React.FC = () => {
     }
     return 'dark';
   });
+
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+
+  // Check for API key on mount
+  useEffect(() => {
+    const key = getStoredApiKey();
+    if (!key) {
+      setShowApiKeyModal(true);
+    }
+  }, []);
 
   // Chat History State
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
@@ -58,7 +70,6 @@ const App: React.FC = () => {
     if (window.innerWidth < 768) setIsSidebarOpen(false); 
   };
 
-  // Missing function added here to fix compilation error
   const updateActiveSession = (messages: Message[]) => {
     if (!activeSessionId) return;
 
@@ -112,6 +123,12 @@ const App: React.FC = () => {
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
         <div className="absolute -bottom-8 left-1/3 w-96 h-96 bg-pink-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
+
+      <ApiKeyModal 
+        isOpen={showApiKeyModal} 
+        onClose={() => setShowApiKeyModal(false)}
+        onSave={() => setShowApiKeyModal(false)}
+      />
 
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
@@ -242,6 +259,19 @@ const App: React.FC = () => {
                 <span className="text-xs leading-relaxed">392/1, Main Street, Kalmunai, Sri Lanka</span>
             </div>
           </div>
+
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">
+            Settings
+          </div>
+          <button 
+             onClick={() => setShowApiKeyModal(true)}
+             className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors group mb-6"
+          >
+             <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-700 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 text-indigo-500 dark:text-indigo-400 transition-colors">
+               <Key size={16} />
+             </div>
+             <span className="text-sm font-medium">Update API Key</span>
+          </button>
 
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">
             Model Info
