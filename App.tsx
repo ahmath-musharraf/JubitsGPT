@@ -6,6 +6,18 @@ import { Menu, Sun, Moon, Facebook, Mail, Phone, MessageSquarePlus, History, Tra
 import { ChatSession, Message } from './types';
 import { getStoredApiKey } from './services/gemini';
 
+// Robust ID generator that works in all environments (secure and non-secure)
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    try {
+      return crypto.randomUUID();
+    } catch (e) {
+      // Fallback if randomUUID fails
+    }
+  }
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+};
+
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [user, setUser] = useState<string | null>(null);
@@ -52,6 +64,7 @@ const App: React.FC = () => {
           return JSON.parse(saved);
         } catch (e) {
           console.error("Failed to load chat history", e);
+          return [];
         }
       }
     }
@@ -82,7 +95,7 @@ const App: React.FC = () => {
 
   const createNewChat = () => {
     const newSession: ChatSession = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       title: 'New Chat',
       messages: [], 
       createdAt: Date.now(),
