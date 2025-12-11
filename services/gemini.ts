@@ -1,8 +1,19 @@
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { Attachment } from "../types";
 
-// Initialize the client strictly according to guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazy initialize the client to prevent startup crashes
+let aiClient: GoogleGenAI | null = null;
+
+const getAiClient = (): GoogleGenAI => {
+  if (!aiClient) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("API Key is missing. Please ensure process.env.API_KEY is configured.");
+    }
+    aiClient = new GoogleGenAI({ apiKey });
+  }
+  return aiClient;
+};
 
 // We maintain a reference to the active chat session and its model
 let chatSession: Chat | null = null;
@@ -12,6 +23,7 @@ const DEFAULT_SYSTEM_INSTRUCTION = "You are JubitsGPT, a highly advanced, witty,
 const CODE_SYSTEM_INSTRUCTION = "You are JubitsGPT, an expert software engineer and coding assistant. You provide clean, efficient, secure, and well-documented code. You explain complex concepts simply and prefer modern best practices.";
 
 export const initializeChat = (model: string = 'gemini-2.5-flash', history?: any[]) => {
+  const ai = getAiClient();
   const systemInstruction = model === 'gemini-3-pro-preview' ? CODE_SYSTEM_INSTRUCTION : DEFAULT_SYSTEM_INSTRUCTION;
   
   chatSession = ai.chats.create({
@@ -96,6 +108,7 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
 };
 
 export const generateImageContent = async (prompt: string): Promise<{ text: string, attachments: Attachment[] }> => {
+  const ai = getAiClient();
   // Always use flash image for Nano Banana
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
@@ -135,7 +148,8 @@ export const generateVideoContent = async (prompt: string): Promise<{ text: stri
   }
 
   // Create a new instance to ensure the latest API key is used
-  const veoAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // We use process.env.API_KEY directly here as per requirement for fresh instance
+  const veoAi = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
   let operation = await veoAi.models.generateVideos({
     model: 'veo-3.1-fast-generate-preview',
@@ -178,6 +192,7 @@ export const generateVideoContent = async (prompt: string): Promise<{ text: stri
 };
 
 export const generateSummary = async (text: string): Promise<string> => {
+  const ai = getAiClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
     contents: `Please provide a concise summary of the following text:\n\n${text}`,
@@ -189,6 +204,7 @@ export const generateSummary = async (text: string): Promise<string> => {
  * Creative feature: Enhances a simple user prompt into a detailed one.
  */
 export const enhancePrompt = async (input: string): Promise<string> => {
+  const ai = getAiClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
     contents: `You are a prompt engineer. Rewrite the following user prompt to be more descriptive, creative, and optimized for an AI model. 
