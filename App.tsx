@@ -20,7 +20,14 @@ const generateId = () => {
 
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [user, setUser] = useState<string | null>(null);
+  
+  // Default to 'Guest' if no user is found, ensuring immediate access
+  const [user, setUser] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('currentUser') || 'Guest';
+    }
+    return 'Guest';
+  });
 
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -32,17 +39,12 @@ const App: React.FC = () => {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [apiKeyVersion, setApiKeyVersion] = useState(0);
 
-  // Initialize Theme and Check Auth
+  // Initialize Theme
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
     localStorage.setItem('theme', theme);
-
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-        setUser(storedUser);
-    }
   }, [theme]);
 
   // Check for API key when user is logged in
@@ -311,7 +313,7 @@ const App: React.FC = () => {
                  </div>
                  <div className="flex-1 overflow-hidden">
                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">{user}</p>
-                     <p className="text-[10px] text-slate-500 dark:text-slate-400">Free Plan</p>
+                     <p className="text-[10px] text-slate-500 dark:text-slate-400">{user === 'Guest' ? 'Guest Access' : 'Free Plan'}</p>
                  </div>
                  <button 
                    onClick={handleLogout}
