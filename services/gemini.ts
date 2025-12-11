@@ -4,11 +4,25 @@ import { Attachment } from "../types";
 // Lazy initialize the client to prevent startup crashes
 let aiClient: GoogleGenAI | null = null;
 
+export const getStoredApiKey = (): string => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('gemini_api_key') || process.env.API_KEY || '';
+  }
+  return process.env.API_KEY || '';
+};
+
+export const setStoredApiKey = (key: string) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('gemini_api_key', key);
+    aiClient = null; // Force re-init with new key
+  }
+};
+
 const getAiClient = (): GoogleGenAI => {
   if (!aiClient) {
-    const apiKey = process.env.API_KEY;
+    const apiKey = getStoredApiKey();
     if (!apiKey) {
-      throw new Error("API Key is missing. Please ensure process.env.API_KEY is configured.");
+      throw new Error("API Key is missing. Please set your API Key in settings.");
     }
     aiClient = new GoogleGenAI({ apiKey });
   }
@@ -148,8 +162,9 @@ export const generateVideoContent = async (prompt: string): Promise<{ text: stri
   }
 
   // Create a new instance to ensure the latest API key is used
-  // We use process.env.API_KEY directly here as per requirement for fresh instance
-  const veoAi = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  // Note: For Veo, we typically rely on the external key selector, but here we pass the current key context
+  const apiKey = getStoredApiKey();
+  const veoAi = new GoogleGenAI({ apiKey });
 
   let operation = await veoAi.models.generateVideos({
     model: 'veo-3.1-fast-generate-preview',
@@ -172,7 +187,7 @@ export const generateVideoContent = async (prompt: string): Promise<{ text: stri
     throw new Error("Failed to generate video.");
   }
 
-  const response = await fetch(`${videoUri}&key=${process.env.API_KEY}`);
+  const response = await fetch(`${videoUri}&key=${apiKey}`);
   if (!response.ok) throw new Error("Failed to download video.");
   
   const blob = await response.blob();
