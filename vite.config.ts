@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       // Safely expose the API_KEY to the client-side code
-      // If API_KEY is missing, default to empty string to prevent syntax errors
+      // We stringify the value. If missing, we default to empty string.
       'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
     },
   };
