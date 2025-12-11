@@ -7,11 +7,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       // Safely expose the API_KEY to the client-side code
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
-      // Prevent crashes if code accesses process.env for other reasons
-      'process.env': {
-        API_KEY: env.API_KEY
-      }
+      // If API_KEY is missing, default to empty string to prevent syntax errors
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
     },
   };
 });
