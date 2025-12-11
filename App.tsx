@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
 import ApiKeyModal from './components/ApiKeyModal';
-import { Menu, Info, Sparkles, Sun, Moon, Facebook, Mail, Phone, MapPin, MessageSquarePlus, History, Trash2, MessageSquare, Bot, Settings, Key } from 'lucide-react';
+import LoginScreen from './components/LoginScreen';
+import { Menu, Info, Sparkles, Sun, Moon, Facebook, Mail, Phone, MapPin, MessageSquarePlus, History, Trash2, MessageSquare, Bot, Settings, Key, LogOut, User } from 'lucide-react';
 import { ChatSession, Message } from './types';
 import { getStoredApiKey } from './services/gemini';
 
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [user, setUser] = useState<string | null>(null);
+
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') || 'dark';
@@ -16,13 +19,28 @@ const App: React.FC = () => {
 
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
-  // Check for API key on mount
+  // Initialize Theme and Check Auth
   useEffect(() => {
-    const key = getStoredApiKey();
-    if (!key) {
-      setShowApiKeyModal(true);
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    localStorage.setItem('theme', theme);
+
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+        setUser(storedUser);
     }
-  }, []);
+  }, [theme]);
+
+  // Check for API key when user is logged in
+  useEffect(() => {
+    if (user) {
+        const key = getStoredApiKey();
+        if (!key) {
+           setShowApiKeyModal(true);
+        }
+    }
+  }, [user]);
 
   // Chat History State
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
@@ -46,15 +64,19 @@ const App: React.FC = () => {
     localStorage.setItem('chatSessions', JSON.stringify(sessions));
   }, [sessions]);
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
+  const handleLogin = (email: string) => {
+      localStorage.setItem('currentUser', email);
+      setUser(email);
+  };
+
+  const handleLogout = () => {
+      localStorage.removeItem('currentUser');
+      setUser(null);
+      setIsSidebarOpen(false);
   };
 
   const createNewChat = () => {
@@ -103,16 +125,25 @@ const App: React.FC = () => {
     }
   };
 
+  // Ensure there is always a session if logged in
   useEffect(() => {
-    if (sessions.length === 0) {
-      createNewChat();
-    } else if (!activeSessionId) {
-      setActiveSessionId(sessions[0].id);
+    if (user) {
+        if (sessions.length === 0) {
+          createNewChat();
+        } else if (!activeSessionId) {
+          setActiveSessionId(sessions[0].id);
+        }
     }
-  }, []);
+  }, [user, sessions.length]);
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
+  // If not authenticated, show Login Screen
+  if (!user) {
+      return <LoginScreen onLogin={handleLogin} />;
+  }
+
+  // Authenticated Layout
   return (
     <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 relative selection:bg-indigo-500/30 transition-colors duration-300 overflow-hidden">
       
@@ -231,7 +262,7 @@ const App: React.FC = () => {
 
           {/* About JUBIT Society Section */}
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">
-            About JUBIT Society
+            Contact Us
           </div>
           <div className="bg-slate-100/50 dark:bg-slate-800/30 rounded-xl p-4 border border-slate-200 dark:border-slate-700/30 backdrop-blur-sm mb-6 space-y-4">
              <a href="https://www.facebook.com/jubitsociety" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group">
@@ -252,20 +283,34 @@ const App: React.FC = () => {
                 </div>
                 <span>+94 76 716 2395</span>
             </div>
-            <div className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400 group">
-                 <div className="p-1.5 rounded-md bg-slate-50 dark:bg-slate-800 mt-0.5 shadow-sm">
-                    <MapPin size={14} />
-                </div>
-                <span className="text-xs leading-relaxed">392/1, Main Street, Kalmunai, Sri Lanka</span>
-            </div>
           </div>
 
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">
-            Settings
+          {/* User Profile Section */}
+          <div className="mb-4">
+             <div className="bg-slate-100 dark:bg-slate-800/50 rounded-xl p-3 flex items-center gap-3 border border-slate-200 dark:border-slate-700/50">
+                 <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    {user?.charAt(0).toUpperCase()}
+                 </div>
+                 <div className="flex-1 overflow-hidden">
+                     <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">{user}</p>
+                     <p className="text-[10px] text-slate-500 dark:text-slate-400">Free Plan</p>
+                 </div>
+                 <button 
+                   onClick={handleLogout}
+                   className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                   title="Log Out"
+                 >
+                     <LogOut size={14} />
+                 </button>
+             </div>
+          </div>
+
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">
+            Configuration
           </div>
           <button 
              onClick={() => setShowApiKeyModal(true)}
-             className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors group mb-6"
+             className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors group"
           >
              <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-700 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 text-indigo-500 dark:text-indigo-400 transition-colors">
                <Key size={16} />
@@ -273,19 +318,6 @@ const App: React.FC = () => {
              <span className="text-sm font-medium">Update API Key</span>
           </button>
 
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">
-            Model Info
-          </div>
-          <div className="bg-slate-100/50 dark:bg-slate-800/30 rounded-xl p-4 border border-slate-200 dark:border-slate-700/30 backdrop-blur-sm">
-            <h3 className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
-              <Info className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-              Overview
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              Powered by highly advanced AI models. 
-              Optimized for speed, reasoning, and multimodal capabilities.
-            </p>
-          </div>
         </div>
 
         <div className="p-4 border-t border-slate-200 dark:border-slate-800/50">
