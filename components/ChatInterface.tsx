@@ -51,19 +51,24 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialMessages = [], onU
   const abortControllerRef = useRef<boolean>(false);
 
   useEffect(() => {
-    if (initialMessages.length > 0) {
-      const validHistory = initialMessages.filter(m => !m.isError && m.id !== 'welcome');
-      if (validHistory.length > 0) {
-        const historyForGemini = validHistory.map(m => ({
-          role: m.role,
-          parts: [{ text: m.text }] 
-        }));
-        initializeChat('gemini-2.5-flash', historyForGemini);
+    // Wrap initialization in try-catch to avoid crashing UI if API key is missing
+    try {
+      if (initialMessages.length > 0) {
+        const validHistory = initialMessages.filter(m => !m.isError && m.id !== 'welcome');
+        if (validHistory.length > 0) {
+          const historyForGemini = validHistory.map(m => ({
+            role: m.role,
+            parts: [{ text: m.text }] 
+          }));
+          initializeChat('gemini-2.5-flash', historyForGemini);
+        } else {
+          initializeChat();
+        }
       } else {
         initializeChat();
       }
-    } else {
-      initializeChat();
+    } catch (e) {
+      console.warn("Initialization failed (likely missing API key). This is expected on first load if key is not set.", e);
     }
   }, []); 
 
@@ -117,7 +122,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialMessages = [], onU
     if (onNewChat) {
       onNewChat();
     } else {
-      initializeChat(); 
+      try {
+        initializeChat(); 
+      } catch (e) {
+        console.warn("Failed to reset chat:", e);
+      }
       setMessages([
         {
           id: crypto.randomUUID(),
@@ -441,8 +450,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialMessages = [], onU
       if (abortControllerRef.current) return;
       console.error('Chat Error:', error);
       let errorMessage = "I encountered an error. Please try again.";
-      if (error.message && error.message.includes('API Key')) {
-         errorMessage = error.message;
+      if (error.message) {
+         if (error.message.includes('API Key')) {
+            errorMessage = "Missing API Key. Please add your API_KEY to the environment variables.";
+         } else {
+            errorMessage = error.message;
+         }
       }
 
       setMessages(prev => {
