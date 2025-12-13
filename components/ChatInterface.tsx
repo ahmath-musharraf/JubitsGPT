@@ -18,6 +18,7 @@ interface ChatInterfaceProps {
   initialMessages?: Message[];
   onUpdateMessages?: (messages: Message[]) => void;
   onNewChat?: () => void;
+  onOpenSettings?: () => void;
 }
 
 // Robust ID generator
@@ -32,7 +33,7 @@ const generateId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 };
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialMessages = [], onUpdateMessages, onNewChat }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialMessages = [], onUpdateMessages, onNewChat, onOpenSettings }) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages.length > 0 ? initialMessages : [
     {
       id: 'welcome',
@@ -464,7 +465,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialMessages = [], onU
       let errorMessage = "I encountered an error. Please try again.";
       if (error.message) {
          if (error.message.includes('API Key')) {
-            errorMessage = "Missing API Key. Please add your API_KEY to the environment variables.";
+            errorMessage = "API Key Error: Missing or invalid API Key. Please update your settings.";
          } else {
             errorMessage = error.message;
          }
@@ -587,6 +588,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialMessages = [], onU
               message={msg} 
               onSummarize={handleSummarizeMessage}
               highlight={searchQuery}
+              onFixError={onOpenSettings}
             />
           ))}
 
@@ -785,7 +787,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialMessages = [], onU
                   disabled={(!input.trim() && attachments.length === 0)}
                   className={`
                     p-3 rounded-xl flex items-center justify-center transition-all duration-200
-                    ${(input.trim() || attachments.length > 0)
+                    {(input.trim() || attachments.length > 0)
                       ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-500' 
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'}
                   `}
