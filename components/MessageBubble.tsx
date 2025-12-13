@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Message, Attachment } from '../types';
-import { Bot, User, Copy, Check, FileText, Download, X, Maximize2, Sparkles, ListPlus, Image as ImageIcon, Video as VideoIcon, Volume2, StopCircle } from 'lucide-react';
+import { Bot, User, Copy, Check, FileText, Download, X, Maximize2, Sparkles, ListPlus, Image as ImageIcon, Video as VideoIcon, Volume2, StopCircle, Settings } from 'lucide-react';
 import MarkdownRenderer from './MarkdownRenderer';
 
 interface MessageBubbleProps {
   message: Message;
   onSummarize?: (id: string) => void;
   highlight?: string;
+  onFixError?: () => void;
 }
 
 const ImageAttachment: React.FC<{ att: Attachment; onZoom: (url: string) => void }> = ({ att, onZoom }) => {
@@ -124,7 +125,7 @@ const FileAttachment: React.FC<{ att: Attachment; formatBytes: (b?: number) => s
   );
 };
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onSummarize, highlight }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onSummarize, highlight, onFixError }) => {
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
@@ -194,6 +195,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onSummari
     }).format(date);
   };
 
+  const isApiKeyError = message.text && message.text.includes("API Key");
+
   return (
     <>
       <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-6 group`}>
@@ -221,7 +224,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onSummari
             }
           `}>
             {/* Action Buttons (Bot only) */}
-            {!isUser && !message.isStreaming && (
+            {!isUser && !message.isStreaming && !message.isError && (
               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10">
                  {/* Summarize Button */}
                  {onSummarize && !message.summary && (
@@ -294,8 +297,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onSummari
             )}
             
             {message.isError && (
-               <div className="mt-2 text-xs text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-400/10 p-2 rounded border border-red-200 dark:border-red-400/20">
-                 Failed to send message. Please try again.
+               <div className="mt-3 flex flex-col gap-2">
+                 <div className="text-xs text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2.5 rounded border border-red-200 dark:border-red-900/30">
+                    Failed to send message. Please try again.
+                 </div>
+                 {isApiKeyError && onFixError && (
+                   <button 
+                     onClick={onFixError}
+                     className="flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition-colors w-fit"
+                   >
+                     <Settings size={14} />
+                     Fix API Key Settings
+                   </button>
+                 )}
                </div>
             )}
 
