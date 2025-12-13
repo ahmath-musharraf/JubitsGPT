@@ -378,6 +378,7 @@ const App: React.FC = () => {
           initialMessages={activeSession?.messages || []}
           onUpdateMessages={updateActiveSession}
           onNewChat={createNewChat}
+          onOpenSettings={() => setShowApiKeyModal(true)}
         />
         
       </main>
