@@ -1,20 +1,63 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 🤖 JubitsGPT Chatbot
 
-# Run and deploy your AI Studio app
+**JubitsGPT** is an intelligent chatbot developed for the **Junior BCAS IT Society** to enhance communication, provide instant responses, and support digital engagement within the community.
 
-This contains everything you need to run your app locally.
+Created by **Mushi Editz**, this chatbot is designed to be simple, interactive, and efficient.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1AieTqGfRu_8EBO75O0TZJ7IVd3jiBiSm
+---
 
-## Run Locally
+## 🚀 Features
 
-**Prerequisites:**  Node.js
+* 💬 Smart conversational responses
+* ⚡ Fast and user-friendly interaction
+* 📚 Supports basic Q&A and information sharing
+* 🌐 Can be integrated into websites or platforms
+* 🔧 Easy to customize and expand
 
+---
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 🏫 About the Project
+
+This chatbot was developed as part of the **Junior BCAS IT Society** initiative to explore AI-based solutions and improve student engagement through technology.
+
+---
+
+## 👨‍💻 Creator
+
+**Mushi Editz**
+Digital Marketer | Designer | Developer
+
+---
+
+## 🛠️ Technologies Used
+
+* Artificial Intelligence / NLP concepts
+* Chatbot framework (custom / platform-based)
+* Web technologies (HTML, CSS, JavaScript) *(if applicable)*
+
+---
+
+## ▶️ Usage
+
+1. Run the application
+2. Open in browser / platform
+3. Start chatting with **JubitsGPT**
+
+---
+
+## 🎯 Future Improvements
+
+* 🔍 Advanced AI responses
+* 📊 Analytics dashboard
+* 🌍 Multi-language support
+* 🤝 Integration with social platforms
+
+---
+
+## 📄 License
+This project is for educational purposes under the **BCAS IT Society**.
+
+---
+
+## ⭐ Support
+If you like this project, feel free to give it a ⭐ and share it!
